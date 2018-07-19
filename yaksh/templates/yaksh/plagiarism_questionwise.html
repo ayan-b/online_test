@@ -1,0 +1,80 @@
+{% extends "manage.html" %}
+{% load custom_filters %}
+{% block title %} Questionwise Plagiarism Detection {% endblock %}
+
+{% block content %}
+
+<!-- Sidebar starts -->
+<div class = "col-sm-3 col-md-2 sidebar">
+	<ul class= "nav nav-sidebar">
+		{% for solution in quiz_solutions %}
+		<li>
+			<a href='#question_{{solution.question.id}}'>{{ solution.question.summary | slice:"30"}} {% if post.body|length > 30 %} ... {% endif %}</a>
+		</li>
+		{% endfor %}	
+</div>
+<!-- Sidebar ends -->
+
+<center><h2>Plagiarism report for Quiz: {{quiz_solutions.0.questionpaper.quiz.description}} </h2></center>
+	<div class="panel-group col-md-offset-2" style="position: relative;">
+	{% for solution in quiz_solutions %}
+		<div class="panel panel-info">
+	        <div class="panel-heading" id="question_{{solution.question.id}}">
+	            <strong> Details: {{forloop.counter}}. {{ solution.question.summary }} 
+	            <span class="marks pull-right"> Mark(s): {{ solution.question.points }}</span>
+	            </strong>
+        	</div>
+        
+        	<div class="panel-body">
+				<h5><u>Question:</u></h5> 
+				<strong>{{ solution.question.description|safe }}</strong>
+        	</div>
+
+        	<div class="panel panel-danger">
+        		{% if solution.copied_groups %}
+  					<div class="panel-heading">
+  						Copied Groups:
+  					</div>
+  					<div class="panel-body">
+						{% for copied_group in solution.copied_groups %}
+							<h5><u>Group {{forloop.counter}}</u></h5>
+							<div class="panel panel-default">
+							{% for student_info in copied_group %}
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<button type="button" class="btn btn-sm"><i class="fa fa-user"></i></button>
+									<b>{{ student_info.0.get_full_name }}</b>
+									<a target = '_blank',
+									href='{{URL_ROOT}}/exam/manage/gradeuser/{{ solution.questionpaper.quiz.id }}/{{ student_info.0.id }}/{{ solution.course.id }}#question_{{ solution.question.id}}_marks'>
+									<span class="label label-danger pull-right">
+										<font size="3">
+											Take Action
+										</font>
+		  							</span></a>
+									</div>
+					 				<div class="panel-body">
+										<pre style="font-family: monospace;">{{ student_info.1 }}</pre>
+									</div>
+									{% if not student_info.2 %}
+										<div class="panel-footer panel panel-danger">
+											<b>This is the Reference Code</b>
+										</div>
+									{% else %}
+										<div class="panel-footer">
+											<p>Match Percentage with Reference: <b>{{ student_info.2 }}%</b></p>
+										</div>
+									{% endif %}
+								</div>
+							{% endfor %}
+							</div>
+						{% endfor %}
+  				{% else %}
+  				<div class="panel-body">
+  					<h4>No Plagiarised Code Found!</h4>
+				</div>
+        		{% endif %}
+        	</div>
+		</div>
+	{% endfor %}
+</div>
+{% endblock %}

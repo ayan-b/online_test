@@ -957,6 +957,12 @@ class Question(models.Model):
     # Solution for the question.
     solution = models.TextField(blank=True)
 
+    # check for plagiarism
+    check_plagiarism = models.BooleanField(default=False)
+
+    # Threshold for plagiarism
+    plagiarism_threshold = models.FloatField(default=70)
+
     def consolidate_answer_data(self, user_answer, user=None):
         question_data = {}
         metadata = {}

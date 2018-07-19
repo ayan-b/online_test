@@ -153,6 +153,10 @@ urlpatterns = [
         views.regrade, name='regrade'),
     url(r'^manage/regrade/paper/(?P<course_id>\d+)/(?P<answerpaper_id>\d+)/$',
         views.regrade, name='regrade'),
+    url(r'^manage/check_plagiarism/$',
+            views.check_plagiarism, name='check_plagiarism'),
+    url(r'^manage/check_plagiarism/(?P<course_id>\d+)/(?P<questionpaper_id>\d+)/$',
+            views.check_plagiarism, name='check_plagiarism'),
     url(r'^manage/(?P<mode>godmode|usermode)/(?P<quiz_id>\d+)/'
         '(?P<course_id>\d+)/$', views.test_quiz),
     url(r'^manage/create_demo_course/$', views.create_demo_course),

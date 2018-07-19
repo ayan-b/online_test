@@ -1,0 +1,37 @@
+{% extends "manage.html" %}
+{% load custom_filters %}
+{% block title %} Check Plagiarism {% endblock %}
+{% block pagetitle %}Check Plagiarism {% endblock pagetitle %}
+
+{% block content %}
+
+    {% if course_details %}
+        <table id="course-details" class="table table-bordered">
+        <tr>
+        <th>Courses</th>
+        <th> Quizzes </th>
+        </tr>
+
+        {% for course in course_details %}
+
+        {% if course.get_quizzes %}
+        <tr>
+        <td><ul class="list-group">{{course.name}}</ul> </td>
+        
+        <td>
+        {% for quiz in course.get_quizzes %}
+         <li class="list-group-item">{{quiz.description}}
+        <span class="label label-success pull-right" id="check"><a href="{{URL_ROOT}}/exam/manage/check_plagiarism/{{course.id}}/{{quiz.questionpaper_set.get.id}}/">
+        Click here to check
+        </a></span>
+        </li>
+        {% endfor %}
+        </td>   
+        {% endif %}
+        </ul>
+        </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+
+{% endblock %}

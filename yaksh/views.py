@@ -46,6 +46,8 @@ from .send_emails import (send_user_mail,
                           generate_activation_key, send_bulk_mail)
 from .decorators import email_verified, has_profile
 
+from yaksh.plagiarism import sort_plagiarised_files
+
 
 def my_redirect(url):
     """An overridden redirect to deal with URL_ROOT-ing. See settings.py
@@ -1877,6 +1879,60 @@ def grader(request, extra_context=None):
     if extra_context:
         context.update(extra_context)
     return my_render_to_response(request, 'yaksh/regrade.html', context)
+
+
+@login_required
+@email_verified
+def check_plagiarism(request, course_id=None, questionpaper_id=None):
+    user = request.user
+    if not user.is_authenticated() or not is_moderator(user):
+        raise Http404('You are not allowed to view this page!')
+
+    course_details = Course.objects.filter(Q(creator=user) | Q(teachers=user),
+                                           is_trial=False).distinct()
+    context = {"course_details": course_details}
+
+    if questionpaper_id and course_id:
+        course = get_object_or_404(Course, pk=course_id)
+        questionpaper = get_object_or_404(QuestionPaper, pk=questionpaper_id)
+        students = course.get_only_students()
+        questions = questionpaper.get_question_bank()
+        quiz_solutions = []
+        plag_codes = []
+        for question in questions:
+            question_solutions = {}
+            if (question.type == 'code' and question.check_plagiarism
+                        and question.language == 'python'):
+                question_solutions['questionpaper'] = questionpaper
+                question_solutions['course'] = course
+                question_solutions['question'] = question
+                answers = {}
+                for student in students:
+                    paper = AnswerPaper.objects.get_user_last_attempt(
+                                                questionpaper,
+                                                student, course.id
+                                                )
+                    if paper:
+                        solution = paper.answers.filter(question=question)\
+                                                 .order_by("id").last()
+                        if solution and solution.correct:
+                            answers[student] = solution.answer
+                question_solutions['answers'] = answers
+            if question_solutions:
+                quiz_solutions.append(question_solutions)
+        for quiz_solution in quiz_solutions:
+            if 'answers' in quiz_solution.keys():
+                answers = quiz_solution['answers']
+                threshold = quiz_solution['question'].plagiarism_threshold
+                plagiarised_codes = sort_plagiarised_files(answers,
+                                            threshold_percent=threshold)
+                all_answers = quiz_solution.pop("answers")
+                quiz_solution["copied_groups"] = plagiarised_codes 
+        context = {"quiz_solutions": quiz_solutions}
+        return my_render_to_response(request, 'yaksh/plagiarism_questionwise.html',
+                                     context
+                                    )
+    return my_render_to_response(request, 'yaksh/check_plagiarism.html', context)
 
 
 @login_required

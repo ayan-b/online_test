@@ -334,9 +334,11 @@ Status : <b style="color: red;"> Failed </b><br/>
         {% endfor %}
     {% endif %}
     {% with answers|last as answer %}
-    Marks: <input id="q{{ question.id }}" type="text" 
-        name="q{{ question.id }}_marks" size="4"
-        value="{{ answer.answer.marks }}"><br><br>
+    <div id = "question_{{question.id}}_marks">
+        Marks: <input id="q{{ question.id }}" type="text" 
+            name="q{{ question.id }}_marks" size="4"
+            value="{{ answer.answer.marks }}"><br><br>
+    </div>
     {% endwith %}
     <hr/>
     </div>
